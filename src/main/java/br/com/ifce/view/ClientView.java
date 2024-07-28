@@ -1,10 +1,13 @@
 package br.com.ifce.view;
 
+import br.com.ifce.network.activemq.BrokerMediator;
 import br.com.ifce.network.activemq.Listener;
 import br.com.ifce.network.activemq.Message;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -12,23 +15,32 @@ public class ClientView implements Listener {
 
     private final JFrame frame;
 
+    private final String windowName;
+
     private final JTextArea logsTextArea = new JTextArea();
 
     private final List<String> messages = new ArrayList<>();
 
-    public ClientView(String windowName) {
+    public ClientView(String windowName, List<String> topics) {
+        this.windowName = windowName;
         this.frame = new JFrame(windowName);
+        topics.forEach(topic -> this.onMessage(new Message(null, "Listening to " + topic + "...")));
     }
 
     public void setUpFrame() throws UnsupportedLookAndFeelException, ClassNotFoundException, InstantiationException, IllegalAccessException {
         UIManager.setLookAndFeel(UIManager.getCrossPlatformLookAndFeelClassName());
-        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         int frameWidth = 620;
         int frameHeight = 790;
         frame.setSize(frameWidth, frameHeight);
         frame.getContentPane().setBackground(Color.WHITE);
-        frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         frame.getContentPane().setLayout(new BoxLayout(frame.getContentPane(), BoxLayout.Y_AXIS));
+        frame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
+        frame.addWindowListener(new WindowAdapter() {
+            public void windowClosing(WindowEvent e) {
+                BrokerMediator.getInstance().closeConsumer(windowName);
+                frame.dispose();
+            }
+        });
 
         this.renderHeading();
         this.renderLogsTextArea();

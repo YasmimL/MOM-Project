@@ -5,9 +5,13 @@ import br.com.ifce.view.MainView;
 
 import javax.swing.*;
 
+import static java.lang.Runtime.getRuntime;
+
 public class Main {
     public static void main(String[] args) {
-        BrokerMediator.getInstance().start();
+        var brokerMediator = BrokerMediator.getInstance();
+        brokerMediator.start();
+        getRuntime().addShutdownHook(new Thread(brokerMediator::close));
         SwingUtilities.invokeLater(() -> {
             try {
                 var view = new MainView();

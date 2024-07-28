@@ -21,7 +21,7 @@ public final class BrokerMediator {
 
     private final Map<String, Producer> producers = new HashMap<>();
 
-    private final List<Consumer> consumers = new ArrayList<>();
+    private final Map<String, Consumer> consumers = new HashMap<>();
 
     private final List<Sensor> sensors = new ArrayList<>();
 
@@ -48,6 +48,8 @@ public final class BrokerMediator {
 
     public void close() {
         try {
+            producers.values().forEach(Producer::close);
+            consumers.values().forEach(Consumer::close);
             connection.close();
         } catch (JMSException e) {
             throw new RuntimeException(e);
@@ -62,8 +64,19 @@ public final class BrokerMediator {
         producers.put(topicName, producer);
     }
 
-    public void addConsumer(Consumer consumer) {
-        consumers.add(consumer);
+    public String addConsumer(Consumer consumer) {
+        var consumerId = "Consumer " + (consumers.size() + 1);
+        consumers.put(consumerId, consumer);
+
+        return consumerId;
+    }
+
+    public Consumer getConsumer(String consumerId) {
+        return consumers.get(consumerId);
+    }
+
+    public void closeConsumer(String consumerId) {
+        if (consumers.containsKey(consumerId)) consumers.get(consumerId).close();
     }
 
     public List<String> getTopics() {
@@ -89,8 +102,11 @@ public final class BrokerMediator {
     }
 
     private void verifySensor(Sensor sensor) {
-        if (sensor.someLimitReached()) {
-            this.producers.get(sensor.topicName()).sendMessage("Sensor triggered");
+        if (sensor.isMinLimitExceeded()) {
+            this.producers.get(sensor.topicName()).sendMessage("minimum limit has been exceeded");
+        }
+        if (sensor.isMaxLimitExceeded()) {
+            this.producers.get(sensor.topicName()).sendMessage("maximum limit has been exceeded");
         }
     }
 

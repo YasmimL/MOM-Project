@@ -27,9 +27,12 @@ public class MainView {
         int frameWidth = 1270;
         int frameHeight = 600;
         frame.setSize(frameWidth, frameHeight);
-        frame.getContentPane().setBackground(Color.WHITE);
         frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
-        frame.getContentPane().setLayout(new BoxLayout(frame.getContentPane(), BoxLayout.Y_AXIS));
+
+        JPanel contentPanel = new JPanel();
+        contentPanel.setBorder(BorderFactory.createEmptyBorder(30, 30, 30, 30));
+        contentPanel.setLayout(new BoxLayout(contentPanel, BoxLayout.Y_AXIS));
+        frame.setContentPane(contentPanel);
 
         this.renderHeading();
         this.renderActions();
@@ -144,14 +147,17 @@ public class MainView {
     private void handleCreateClient(List<Object> selectedTopics) {
         try {
             if (selectedTopics.isEmpty()) return;
+
             var topics = selectedTopics.stream().map(String::valueOf).toList();
+            var consumerId = Consumer.newInstance(topics);
 
-            var clientView = new ClientView("Client " + (clientViews.size() + 1));
+            var clientView = new ClientView(consumerId, topics);
             clientView.setUpFrame();
-            clientViews.add(clientView);
 
-            var consumer = Consumer.newInstance(topics, clientView);
-            BrokerMediator.getInstance().addConsumer(consumer);
+            var consumer = BrokerMediator.getInstance().getConsumer(consumerId);
+            if (consumer != null) consumer.setListenerComponent(clientView);
+
+            clientViews.add(clientView);
         } catch (Exception e) {
             e.printStackTrace();
         }

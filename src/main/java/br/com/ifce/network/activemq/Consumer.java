@@ -8,18 +8,13 @@ public class Consumer {
 
     private List<MessageListenerImpl> listeners;
 
-    private final Listener listenerComponent;
+    private Listener listenerComponent;
 
-    private Consumer(Listener listenerComponent) {
-        this.listenerComponent = listenerComponent;
-    }
-
-    public static Consumer newInstance(List<String> topicNames, Listener listenerComponent) {
-        var consumer = new Consumer(listenerComponent);
+    public static String newInstance(List<String> topicNames) {
+        var consumer = new Consumer();
         consumer.listeners = topicNames.stream().map(topic -> MessageListenerImpl.newInstance(consumer, topic)).toList();
-        BrokerMediator.getInstance().addConsumer(consumer);
 
-        return consumer;
+        return BrokerMediator.getInstance().addConsumer(consumer);
     }
 
     public void onMessage(br.com.ifce.network.activemq.Message message) {
@@ -28,6 +23,10 @@ public class Consumer {
 
     public void close() {
         listeners.forEach(MessageListenerImpl::close);
+    }
+
+    public void setListenerComponent(Listener listenerComponent) {
+        this.listenerComponent = listenerComponent;
     }
 
     public static class MessageListenerImpl implements MessageListener {
@@ -74,8 +73,8 @@ public class Consumer {
 
         public void close() {
             try {
-                session.close();
                 messageConsumer.close();
+                session.close();
             } catch (JMSException e) {
                 throw new RuntimeException(e);
             }

@@ -40,8 +40,8 @@ public final class Producer {
 
     public void close() {
         try {
-            session.close();
             publisher.close();
+            session.close();
         } catch (JMSException e) {
             throw new RuntimeException(e);
         }

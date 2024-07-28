@@ -31,10 +31,11 @@ public record Sensor(String topicName, Parameter parameter, Double minLimit, Dou
         );
     }
 
-    public boolean someLimitReached() {
-        if (this.currentValue < this.minLimit) return true;
-        if (this.currentValue > this.maxLimit) return true;
+    public boolean isMinLimitExceeded() {
+        return this.currentValue < this.minLimit;
+    }
 
-        return false;
+    public boolean isMaxLimitExceeded() {
+        return this.currentValue > this.maxLimit;
     }
 }
