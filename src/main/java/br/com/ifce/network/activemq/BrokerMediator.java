@@ -92,7 +92,6 @@ public final class BrokerMediator {
         Sensor sensor = new Sensor(topicName, parameter, minLimit, maxLimit, currentValue);
         this.sensors.add(sensor);
         this.producers.put(topicName, Producer.newInstance(topicName));
-        this.verifySensor(sensor);
     }
 
     public void replaceSensor(int index, Sensor sensor) {
