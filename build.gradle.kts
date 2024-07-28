@@ -1,5 +1,17 @@
 plugins {
+    id("com.github.johnrengelman.shadow").version("8.1.1")
     id("java")
+    application
+}
+
+application {
+    mainClass.set("br.com.ifce.Main")
+}
+
+tasks.jar {
+    manifest {
+        attributes(mapOf("Main-Class" to application.mainClass))
+    }
 }
 
 group = "br.com.ifce"
